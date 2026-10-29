@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard do Dia — Maria Fernanda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Fontes retrô e legíveis -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Arquivo de configuração local (ignorado pelo git) -->
+  <script src="config.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Paleta Windows 95: Rose & Lilac Edition (Alto Contraste WCAG AA) ── */
+      --win-bg: #5a3064;              /* Desktop Lilás/Ameixa retrô fechado */
+      --win-base: #eeddee;            /* Superfície da janela e botões em lilás/rosa pálido */
+      --win-light: #ffffff;           /* Borda superior/esquerda (realce 3D) */
+      --win-dark: #9a7e9e;            /* Borda inferior/direita (sombra 3D média) */
+      --win-darker: #2b0d30;          /* Borda externa escura/contorno */
+      
+      /* Barras de Título (Degradê Magenta Escuro -> Lilás) */
+      --win-title-start: #6e135b;
+      --win-title-end: #992680;
+      --win-title-text: #ffffff;      /* Contraste 11.2:1 (Supera WCAG AAA) */
+
+      /* Textos de Conteúdo */
+      --win-text: #220926;            /* Roxo profundo/quase preto. Contraste 13.6:1 no win-base */
+      --win-muted: #542a59;           /* Roxo médio escuro. Contraste 6.3:1 (Supera WCAG AA) */
+      --win-accent: #6e135b;          /* Destaque principal */
+      
+      /* Tipografia */
+      --font-system: 'MS Sans Serif', Tahoma, 'Inter', -apple-system, sans-serif;
+      --font-pixel: 'Press Start 2P', monospace;
+
+      /* Foco de Acessibilidade */
+      --focus-ring: #b30070;
+    }
+
+    body {
+      font-family: var(--font-system);
+      background-color: var(--win-bg);
+      color: var(--win-text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 5rem;
+      line-height: 1.5;
+    }
+
+    /* ── Acessibilidade: Indicador de Foco WCAG AA (2.4.7) ── */
+    :focus-visible {
+      outline: 3px solid var(--focus-ring) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Utilitário para leitores de tela */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .desktop-container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── Estilo Janela Windows 95 (Bordas 3D) ─────── */
+    .win95-window {
+      background: var(--win-base);
+      border-top: 2px solid var(--win-light);
+      border-left: 2px solid var(--win-light);
+      border-right: 2px solid var(--win-darker);
+      border-bottom: 2px solid var(--win-darker);
+      box-shadow: 1px 1px 0px var(--win-dark) inset, -1px -1px 0px var(--win-dark) inset;
+      margin-bottom: 1.75rem;
+      padding: 3px;
+    }
+
+    .win95-titlebar {
+      background: linear-gradient(90deg, var(--win-title-start) 0%, var(--win-title-end) 100%);
+      color: var(--win-title-text);
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .win95-title {
+      font-family: var(--font-pixel);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .win95-controls {
+      display: flex;
+      gap: 3px;
+    }
+
+    .win-btn-ctrl {
+      width: 20px;
+      height: 18px;
+      background: var(--win-base);
+      border-top: 1px solid var(--win-light);
+      border-left: 1px solid var(--win-light);
+      border-right: 1px solid var(--win-darker);
+      border-bottom: 1px solid var(--win-darker);
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--win-text);
+      padding: 0;
+    }
+
+    .win-btn-ctrl:active {
+      border-top: 1px solid var(--win-darker);
+      border-left: 1px solid var(--win-darker);
+      border-right: 1px solid var(--win-light);
+      border-bottom: 1px solid var(--win-light);
+    }
+
+    .win95-body {
+      padding: 14px;
+      color: var(--win-text);
+    }
+
+    /* ── Efeito Campo Baixo-Relevo (Inset) ────────── */
+    .win-inset {
+      border-top: 2px solid var(--win-dark);
+      border-left: 2px solid var(--win-dark);
+      border-right: 2px solid var(--win-light);
+      border-bottom: 2px solid var(--win-light);
+      background: #ffffff;
+      color: var(--win-text);
+      box-shadow: inset 1px 1px 0px var(--win-darker);
+    }
+
+    /* ── Botões clássicos Win95 ───────────────────── */
+    .win-btn {
+      background: var(--win-base);
+      border-top: 2px solid var(--win-light);
+      border-left: 2px solid var(--win-light);
+      border-right: 2px solid var(--win-darker);
+      border-bottom: 2px solid var(--win-darker);
+      box-shadow: 1px 1px 0px var(--win-dark) inset, -1px -1px 0px var(--win-dark) inset;
+      font-family: var(--font-pixel);
+      font-size: 0.7rem;
+      color: var(--win-text);
+      padding: 8px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .win-btn:active {
+      border-top: 2px solid var(--win-darker);
+      border-left: 2px solid var(--win-darker);
+      border-right: 2px solid var(--win-light);
+      border-bottom: 2px solid var(--win-light);
+      box-shadow: none;
+      padding: 9px 13px 7px 15px;
+    }
+
+    /* ── Header / Saudação ───────────────────────── */
+    .header-layout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .header-info h1 {
+      font-family: var(--font-pixel);
+      font-size: 1.15rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+      color: var(--win-accent);
+    }
+
+    .header-sub {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--win-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-family: var(--font-pixel);
+      font-size: 0.7rem;
+      background: #fff2f8;
+      border: 1px solid var(--win-accent);
+      color: var(--win-accent);
+    }
+
+    /* ── Grid dos Cards de Resumo ────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .card-box {
+      padding: 12px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-pixel);
+      font-size: 0.7rem;
+      color: var(--win-accent);
+      border-bottom: 2px solid var(--win-dark);
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+
+    .card-val {
+      font-family: var(--font-pixel);
+      font-size: 2.2rem;
+      color: var(--win-text);
+      margin: 10px 0;
+    }
+
+    .card-desc {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--win-muted);
+      margin-bottom: 8px;
+    }
+
+    .card-badge-pill {
+      font-family: var(--font-pixel);
+      font-size: 0.65rem;
+      background: var(--win-accent);
+      color: #ffffff;
+      padding: 4px 8px;
+      display: inline-block;
+      border: 1px solid var(--win-darker);
+    }
+
+    .card-reading-est {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--win-accent);
+      margin-top: 10px;
+    }
+
+    /* ── Agenda ──────────────────────────────────── */
+    .agenda-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+    }
+
+    .agenda-table caption {
+      text-align: left;
+      font-weight: bold;
+      padding: 6px 8px;
+      font-size: 0.95rem;
+      color: var(--win-muted);
+      background: var(--win-base);
+      border-bottom: 1px solid var(--win-dark);
+    }
+
+    .agenda-table th {
+      background: #f7eef7;
+      border-bottom: 2px solid var(--win-dark);
+      border-right: 1px solid #ddd;
+      font-family: var(--font-pixel);
+      font-size: 0.68rem;
+      color: var(--win-accent);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .agenda-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #ecdcec;
+      font-size: 1rem;
+      color: var(--win-text);
+    }
+
+    .agenda-table tr:hover td {
+      background: #6e135b;
+      color: #ffffff;
+    }
+
+    .agenda-table tr:hover .event-time {
+      color: #ffd6f3;
+    }
+
+    .agenda-table tr:hover .event-dur {
+      background: #4a0c3d;
+      color: #ffffff;
+      border-color: #ffffff;
+    }
+
+    .event-time {
+      font-family: var(--font-pixel);
+      font-size: 0.72rem;
+      color: var(--win-accent);
+      white-space: nowrap;
+    }
+
+    .event-dur {
+      font-family: var(--font-pixel);
+      font-size: 0.65rem;
+      background: #f0e2f0;
+      padding: 3px 8px;
+      border: 1px solid var(--win-dark);
+      white-space: nowrap;
+      color: var(--win-text);
+      display: inline-block;
+    }
+
+    .agenda-status-bar {
+      margin-top: 8px;
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: var(--win-base);
+      color: var(--win-muted);
+    }
+
+    /* ── Login Overlay Win95 ─────────────────────── */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(90, 48, 100, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 1rem;
+    }
+
+    .login-dialog {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .dialog-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      padding: 1.25rem;
+      background: var(--win-base);
+    }
+
+    .dialog-header-banner {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      border-bottom: 1px solid var(--win-dark);
+      padding-bottom: 1rem;
+    }
+
+    /* ── Barra de Tarefas Win95 (Taskbar inferior) ── */
+    .taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 38px;
+      background: var(--win-base);
+      border-top: 2px solid var(--win-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 6px;
+      z-index: 100;
+    }
+
+    .start-btn {
+      height: 30px;
+      padding: 2px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-pixel);
+      font-size: 0.72rem;
+      font-weight: bold;
+    }
+
+    .taskbar-clock {
+      padding: 4px 12px;
+      font-family: var(--font-pixel);
+      font-size: 0.7rem;
+      background: var(--win-base);
+      color: var(--win-text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ JANELA DE LOGIN (OVERLAY WIN95 ACESSÍVEL) ══ -->
+  <div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="win95-window login-dialog">
+      <div class="win95-titlebar">
+        <span class="win95-title" id="loginTitle">🔑 Logon do Windows — Dashboard</span>
+        <div class="win95-controls">
+          <button class="win-btn-ctrl" aria-label="Ajuda">?</button>
+          <button class="win-btn-ctrl" aria-label="Fechar Janela">×</button>
+        </div>
+      </div>
+      <div class="dialog-content">
+        <div class="dialog-header-banner">
+          <!-- Ícone retrô Chave/Login em tons rosa/lilás -->
+          <svg viewBox="0 0 16 16" width="52" height="52" aria-hidden="true" style="image-rendering:pixelated; flex-shrink:0;">
+            <rect x="2" y="2" width="12" height="12" fill="#eeddee"/>
+            <rect x="3" y="3" width="10" height="1" fill="#fff"/>
+            <rect x="3" y="3" width="1" height="10" fill="#fff"/>
+            <rect x="13" y="3" width="1" height="10" fill="#2b0d30"/>
+            <rect x="3" y="13" width="10" height="1" fill="#2b0d30"/>
+            <!-- Chave Dourada/Rosa -->
+            <rect x="5" y="5" width="4" height="4" fill="#d4af37"/>
+            <rect x="6" y="6" width="2" height="2" fill="#eeddee"/>
+            <rect x="8" y="7" width="5" height="2" fill="#d4af37"/>
+            <rect x="11" y="9" width="2" height="2" fill="#d4af37"/>
+          </svg>
+          <div>
+            <h2 style="font-family:var(--font-pixel); font-size:0.8rem; color:var(--win-accent); margin-bottom:6px;">Início de Sessão</h2>
+            <p style="font-size:1rem; color:var(--win-text);">Conecte sua conta Google para carregar dados reais do Gmail e Calendar.</p>
+          </div>
+        </div>
+
+        <div class="win-inset" style="padding:12px; font-size:0.95rem; line-height:1.6;">
+          <strong>Permissões Solicitadas:</strong><br>
+          ✉️ <strong>Gmail:</strong> Leitura segura da caixa de entrada e contagem<br>
+          📅 <strong>Google Calendar:</strong> Reuniões agendadas para o dia de hoje
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+          <button id="btnSignIn" class="win-btn" onclick="signIn()" style="font-size:0.75rem; padding:10px 18px;">
+            🔌 Entrar com Google
+          </button>
+        </div>
+        <p id="loginError" role="alert" style="font-size:0.85rem; font-weight:bold; color:#800020; display:none;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DESKTOP PRINCIPAL ═════════════════════════ -->
+  <main class="desktop-container">
+
+    <!-- Janela de Saudação & Boas-vindas -->
+    <header class="win95-window">
+      <div class="win95-titlebar">
+        <span class="win95-title">🖥️ C:\INICIO\BOAS_VINDAS.EXE</span>
+        <div class="win95-controls">
+          <button class="win-btn-ctrl" aria-label="Minimizar janela">_</button>
+          <button class="win-btn-ctrl" aria-label="Maximizar janela">□</button>
+          <button class="win-btn-ctrl" aria-label="Fechar janela">×</button>
+        </div>
+      </div>
+      <div class="win95-body">
+        <div class="header-layout">
+          <div class="header-info">
+            <span class="status-badge" id="greetingLabel">✦ Bom dia, Maria Fernanda</span>
+            <h1>Por onde começo hoje?</h1>
+            <div class="header-sub">
+              <span id="dateText"></span>
+              <span aria-hidden="true">•</span>
+              <span>Horário de Brasília:</span>
+              <span id="clockText" style="font-family:var(--font-pixel); font-size:0.85rem; color:var(--win-accent);" aria-live="off"></span>
+            </div>
+          </div>
+          <!-- Botão Desconectar Win95 -->
+          <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+            <button id="btnSignOut" class="win-btn" onclick="signOut()" style="display:none;">
+              ⏹ Sair da Conta
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Cards de Resumo -->
+    <section class="cards-grid" aria-label="Resumo do Dia">
+
+      <!-- Card: Gmail -->
+      <article class="win95-window">
+        <div class="win95-titlebar">
+          <span class="win95-title">📬 GMAIL.EXE</span>
+          <div class="win95-controls">
+            <button class="win-btn-ctrl" aria-label="Minimizar">_</button>
+            <button class="win-btn-ctrl" aria-label="Fechar">×</button>
+          </div>
+        </div>
+        <div class="win95-body card-box">
+          <div class="card-head">
+            <span>✉️ EMAILS NÃO LIDOS</span>
+          </div>
+          <div class="win-inset" style="padding:12px; margin-bottom:8px;">
+            <div class="card-val" id="emailCount" data-emails="0" aria-live="polite">--</div>
+            <p class="card-desc" id="emailSub">Aguardando login...</p>
+            <span class="card-badge-pill" id="emailBadge">--</span>
+          </div>
+          <p class="card-reading-est" id="emailReadEstimate">⏱ Conecte sua conta para calcular</p>
+        </div>
+      </article>
+
+      <!-- Card: Calendar -->
+      <article class="win95-window">
+        <div class="win95-titlebar">
+          <span class="win95-title">📅 CALENDAR.EXE</span>
+          <div class="win95-controls">
+            <button class="win-btn-ctrl" aria-label="Minimizar">_</button>
+            <button class="win-btn-ctrl" aria-label="Fechar">×</button>
+          </div>
+        </div>
+        <div class="win95-body card-box">
+          <div class="card-head">
+            <span>🗓️ REUNIÕES HOJE</span>
+          </div>
+          <div class="win-inset" style="padding:12px; margin-bottom:8px;">
+            <div class="card-val" id="meetCount" aria-live="polite">--</div>
+            <p class="card-desc" id="meetSub">Aguardando login...</p>
+            <span class="card-badge-pill" style="background:#065426;">Google Meet</span>
+          </div>
+          <p class="card-reading-est" id="meetingTotal">⏱ Conecte sua conta para calcular</p>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Janela Agenda do Dia -->
+    <section class="win95-window" aria-labelledby="agendaTitle">
+      <div class="win95-titlebar">
+        <span class="win95-title" id="agendaTitle">📋 AGENDA_DO_DIA.TXT</span>
+        <div class="win95-controls">
+          <button class="win-btn-ctrl" aria-label="Minimizar">_</button>
+          <button class="win-btn-ctrl" aria-label="Maximizar">□</button>
+          <button class="win-btn-ctrl" aria-label="Fechar">×</button>
+        </div>
+      </div>
+      <div class="win95-body">
+        <div class="win-inset" style="overflow-x:auto;">
+          <table class="agenda-table">
+            <caption class="sr-only">Lista de reuniões agendadas para hoje pelo Google Calendar</caption>
+            <thead>
+              <tr>
+                <th scope="col" style="width:120px;">HORÁRIO</th>
+                <th scope="col">COMPROMISSO</th>
+                <th scope="col" style="width:110px; text-align:right;">DURAÇÃO</th>
+              </tr>
+            </thead>
+            <tbody id="agendaTableBody">
+              <tr>
+                <td colspan="3" style="text-align:center; padding:1.5rem; color:var(--win-muted);">
+                  Conecte sua conta Google para visualizar a agenda de hoje.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="agenda-status-bar win-inset" style="margin-top:6px;">
+          <span id="agendaStatusLeft">Aguardando login</span>
+          <span id="agendaStatusRight" style="color:var(--win-accent);">Sincronizado com Google Calendar</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gráfico Volume de Emails -->
+    <section class="win95-window" aria-labelledby="chartTitle">
+      <div class="win95-titlebar">
+        <span class="win95-title" id="chartTitle">📊 GRAFICO_EMAILS.DAT</span>
+        <div class="win95-controls">
+          <button class="win-btn-ctrl" aria-label="Minimizar">_</button>
+          <button class="win-btn-ctrl" aria-label="Maximizar">□</button>
+          <button class="win-btn-ctrl" aria-label="Fechar">×</button>
+        </div>
+      </div>
+      <div class="win95-body">
+        <div style="font-family:var(--font-pixel); font-size:0.75rem; margin-bottom:12px; color:var(--win-accent);">
+          Volume de emails recebidos na semana (Barra magenta escuro = Hoje)
+        </div>
+        <div class="win-inset" style="padding:12px; height:240px; background:#ffffff;">
+          <canvas id="emailChart" role="img" aria-label="Gráfico de barras mostrando o volume diário de emails nos últimos 7 dias"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /desktop-container -->
+
+  <!-- ══ BARRA DE TAREFAS WINDOWS 95 ═══════════════ -->
+  <footer class="taskbar" role="contentinfo">
+    <button class="win-btn start-btn" aria-label="Menu Iniciar">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" style="image-rendering:pixelated;">
+        <rect x="1" y="1" width="6" height="6" fill="#f25022"/>
+        <rect x="9" y="1" width="6" height="6" fill="#7fba00"/>
+        <rect x="1" y="9" width="6" height="6" fill="#00a4ef"/>
+        <rect x="9" y="9" width="6" height="6" fill="#ffb900"/>
+      </svg>
+      Iniciar
+    </button>
+    <div class="taskbar-clock win-inset" id="taskbarClock" aria-label="Relógio do sistema">
+      12:00
+    </div>
+  </footer>
+
+  <script>
+    // ══════════════════════════════════════════════
+    //  RELÓGIO & DATA (Horário de Brasília)
+    // ══════════════════════════════════════════════
+    function atualizarRelogio() {
+      const agora = new Date();
+      const horaBrasilia = agora.toLocaleTimeString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      const horaMinuto = agora.toLocaleTimeString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit'
+      });
+
+      document.getElementById('clockText').textContent = horaBrasilia;
+      document.getElementById('taskbarClock').textContent = horaMinuto;
+
+      const dataBrasilia = agora.toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById('dateText').textContent = dataBrasilia.charAt(0).toUpperCase() + dataBrasilia.slice(1);
+
+      const horaNum = Number(agora.toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false
+      }));
+      const saudacao = horaNum < 12 ? 'Bom dia' : horaNum < 18 ? 'Boa tarde' : 'Boa noite';
+      document.getElementById('greetingLabel').textContent = `✦ ${saudacao}, Maria Fernanda`;
+    }
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 1000);
+
+    // ══════════════════════════════════════════════
+    //  ESTIMATIVAS & CÁLCULOS
+    // ══════════════════════════════════════════════
+    function updateReadingEstimate(count) {
+      if (typeof count !== 'number' || isNaN(count)) {
+        document.getElementById('emailReadEstimate').textContent = '⏱ Conecte sua conta para calcular';
+        return;
+      }
+      const h = Math.floor(count / 60);
+      const m = count % 60;
+      const label = h > 0
+        ? (m > 0 ? `~${h}h${String(m).padStart(2,'0')} para ler tudo` : `~${h}h para ler tudo`)
+        : `~${m} min para ler tudo`;
+      document.getElementById('emailReadEstimate').textContent = '⏱ ' + label;
+    }
+
+    function updateMeetingTotal() {
+      const rows = document.querySelectorAll('#agendaTableBody tr[data-duration]');
+      if (rows.length === 0) {
+        document.getElementById('meetingTotal').textContent = '⏱ Conecte sua conta para calcular';
+        return;
+      }
+      const totalMin = Array.from(rows).reduce((sum, el) => sum + Number(el.dataset.duration || 0), 0);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      const label = h > 0
+        ? (m > 0 ? `${h}h${String(m).padStart(2,'0')} em reuniões` : `${h}h em reuniões`)
+        : `${m} min em reuniões`;
+      document.getElementById('meetingTotal').textContent = '⏱ ' + label;
+      document.getElementById('agendaStatusLeft').textContent = `${rows.length} compromisso(s) listados • Total: ${label}`;
+    }
+
+    // ══════════════════════════════════════════════
+    //  GOOGLE AUTHENTICATION (GSI)
+    // ══════════════════════════════════════════════
+    // Carrega o Client ID a partir do config.js (ou variável de ambiente)
+    const CLIENT_ID = (window.APP_CONFIG && window.APP_CONFIG.GOOGLE_CLIENT_ID)
+      ? window.APP_CONFIG.GOOGLE_CLIENT_ID
+      : '522310621894-1qdj9fl7256c8hsjqbh7gd5gpa4hl2c5.apps.googleusercontent.com';
+
+    const SCOPES = [
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/calendar.readonly',
+    ].join(' ');
+
+    let tokenClient;
+    let accessToken = null;
+
+    function tryInitAuth() {
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: handleTokenResponse,
+        });
+      } else {
+        setTimeout(tryInitAuth, 150);
+      }
+    }
+    tryInitAuth();
+
+    function signIn() {
+      const btn = document.getElementById('btnSignIn');
+      btn.disabled = true;
+      btn.textContent = 'Carregando...';
+      hideLoginError();
+      if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: '' });
+      } else {
+        showLoginError('Biblioteca do Google ainda está carregando. Tente novamente em instantes.');
+        btn.disabled = false;
+        btn.textContent = '🔌 Entrar com Google';
+      }
+    }
+
+    async function handleTokenResponse(resp) {
+      const btn = document.getElementById('btnSignIn');
+      btn.disabled = false;
+      btn.textContent = '🔌 Entrar com Google';
+
+      if (resp.error) {
+        showLoginError('Erro de autenticação: ' + resp.error);
+        return;
+      }
+
+      accessToken = resp.access_token;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('btnSignOut').style.display = 'inline-flex';
+
+      document.getElementById('emailCount').textContent = '...';
+      document.getElementById('meetCount').textContent = '...';
+
+      await Promise.all([
+        fetchGmailData(),
+        fetchCalendarData(),
+        fetchEmailHistoryChart()
+      ]);
+    }
+
+    function signOut() {
+      if (accessToken) {
+        google.accounts.oauth2.revoke(accessToken, () => {});
+        accessToken = null;
+      }
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('btnSignOut').style.display = 'none';
+      
+      // Resetar dados para o estado inicial
+      document.getElementById('emailCount').textContent = '--';
+      document.getElementById('emailSub').textContent = 'Aguardando login...';
+      document.getElementById('emailBadge').textContent = '--';
+      document.getElementById('meetCount').textContent = '--';
+      document.getElementById('meetSub').textContent = 'Aguardando login...';
+      document.getElementById('emailReadEstimate').textContent = '⏱ Conecte sua conta para calcular';
+      document.getElementById('meetingTotal').textContent = '⏱ Conecte sua conta para calcular';
+      
+      document.getElementById('agendaTableBody').innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align:center; padding:1.5rem; color:var(--win-muted);">
+            Conecte sua conta Google para visualizar a agenda de hoje.
+          </td>
+        </tr>`;
+      document.getElementById('agendaStatusLeft').textContent = 'Aguardando login';
+
+      const pastDays = getPast7Days();
+      updateChart(pastDays.map(d => d.label), [0, 0, 0, 0, 0, 0, 0]);
+    }
+
+    function showLoginError(msg) {
+      const el = document.getElementById('loginError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function hideLoginError() {
+      document.getElementById('loginError').style.display = 'none';
+    }
+
+    // ══════════════════════════════════════════════
+    //  GMAIL API
+    // ══════════════════════════════════════════════
+    async function fetchGmailData() {
+      try {
+        const inboxRes = await fetch(
+          'https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX',
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        const inbox = await inboxRes.json();
+        const unread = inbox.messagesUnread || 0;
+
+        const urgentRes = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is%3Aunread+is%3Aimportant&maxResults=100`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        const urgentData = await urgentRes.json();
+        const urgentCount = (urgentData.messages || []).length;
+
+        const el = document.getElementById('emailCount');
+        el.textContent = unread;
+        el.dataset.emails = unread;
+
+        document.getElementById('emailSub').textContent =
+          unread === 0 ? 'Caixa de entrada limpa! 🎉' : `${unread} email(s) pendente(s)`;
+
+        const badge = document.getElementById('emailBadge');
+        badge.textContent = urgentCount > 0 ? `${urgentCount} importantes` : '0 urgentes';
+
+        updateReadingEstimate(unread);
+      } catch (err) {
+        console.error('Gmail error:', err);
+        document.getElementById('emailCount').textContent = '!';
+        document.getElementById('emailSub').textContent = 'Erro ao consultar Gmail';
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  HISTÓRICO REAL DE EMAILS (7 DIAS)
+    // ══════════════════════════════════════════════
+    function getPast7Days() {
+      const days = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+        const end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+
+        const weekday = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+        const dayNum = String(d.getDate()).padStart(2, '0');
+
+        days.push({
+          label: `${capitalized} ${dayNum}`,
+          afterSec: Math.floor(start.getTime() / 1000),
+          beforeSec: Math.floor(end.getTime() / 1000)
+        });
+      }
+      return days;
+    }
+
+    async function fetchEmailHistoryChart() {
+      try {
+        const days = getPast7Days();
+        const countPromises = days.map(async (d) => {
+          const q = encodeURIComponent(`after:${d.afterSec} before:${d.beforeSec}`);
+          const res = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=500`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const data = await res.json();
+          return (data.messages || []).length;
+        });
+
+        const counts = await Promise.all(countPromises);
+        updateChart(days.map(d => d.label), counts);
+      } catch (err) {
+        console.error('Erro ao buscar histórico de emails no Gmail:', err);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  GOOGLE CALENDAR API
+    // ══════════════════════════════════════════════
+    async function fetchCalendarData() {
+      try {
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+        const params = new URLSearchParams({
+          timeMin: startOfToday.toISOString(),
+          timeMax: startOfTomorrow.toISOString(),
+          singleEvents: 'true',
+          orderBy: 'startTime',
+          maxResults: '25',
+        });
+
+        const res = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        const data = await res.json();
+
+        const events = (data.items || []).filter(e => e.start && e.start.dateTime);
+
+        const meetEl = document.getElementById('meetCount');
+        meetEl.textContent = events.length;
+
+        const nextEvent = events.find(e => new Date(e.start.dateTime) > now);
+        const meetSub = document.getElementById('meetSub');
+        if (nextEvent) {
+          const nextTime = new Date(nextEvent.start.dateTime).toLocaleTimeString('pt-BR', {
+            timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit'
+          });
+          meetSub.textContent = `Próxima às ${nextTime}`;
+        } else {
+          meetSub.textContent = events.length === 0 ? 'Sem reuniões agendadas' : 'Reuniões concluídas';
+        }
+
+        renderAgenda(events);
+      } catch (err) {
+        console.error('Calendar error:', err);
+        document.getElementById('meetCount').textContent = '!';
+        document.getElementById('meetSub').textContent = 'Erro ao consultar Calendar';
+      }
+    }
+
+    function renderAgenda(events) {
+      const tbody = document.getElementById('agendaTableBody');
+      tbody.innerHTML = '';
+
+      if (events.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:1.5rem; color:var(--win-muted);">Nenhum evento agendado para hoje.</td></tr>`;
+        document.getElementById('meetingTotal').textContent = '⏱ 0 min em reuniões';
+        document.getElementById('agendaStatusLeft').textContent = '0 compromissos listados';
+        return;
+      }
+
+      events.forEach(event => {
+        const start = new Date(event.start.dateTime);
+        const end = new Date(event.end.dateTime);
+        const durationMin = Math.round((end - start) / 60000);
+
+        const timeStr = start.toLocaleTimeString('pt-BR', {
+          timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit'
+        });
+
+        const dur = durationMin >= 60
+          ? `${Math.floor(durationMin / 60)}h${durationMin % 60 > 0 ? String(durationMin % 60).padStart(2, '0') : ''}`
+          : `${durationMin} min`;
+
+        const row = document.createElement('tr');
+        row.className = 'agenda-row';
+        row.dataset.duration = durationMin;
+        row.innerHTML = `
+          <td class="event-time">${timeStr}</td>
+          <td>${event.summary || '(Sem título)'}</td>
+          <td style="text-align:right;"><span class="event-dur">${dur}</span></td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      updateMeetingTotal();
+    }
+
+    // ══════════════════════════════════════════════
+    //  GRÁFICO WIN95 ROSE & LILAC (Chart.js)
+    // ══════════════════════════════════════════════
+    const initialDays = getPast7Days();
+    const ctx = document.getElementById('emailChart').getContext('2d');
+    let emailChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: initialDays.map(d => d.label),
+        datasets: [{
+          label: 'Emails',
+          data: [0, 0, 0, 0, 0, 0, 0],
+          backgroundColor: '#bda6bd',
+          borderColor: '#2b0d30',
+          borderWidth: 1.5,
+          borderRadius: 0,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#2b0d30',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            titleFont: { family: 'MS Sans Serif, sans-serif', size: 12 },
+            bodyFont: { family: 'MS Sans Serif, sans-serif', size: 13 },
+            padding: 8,
+            cornerRadius: 0
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#220926',
+              font: { family: 'MS Sans Serif, sans-serif', size: 12, weight: 'bold' }
+            }
+          },
+          y: {
+            grid: { color: '#e0cbe0' },
+            ticks: {
+              color: '#220926',
+              font: { family: 'MS Sans Serif, sans-serif', size: 12, weight: 'bold' },
+              stepSize: 5
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    function updateChart(labels, dataVals) {
+      if (!emailChartInstance) return;
+      emailChartInstance.data.labels = labels;
+      emailChartInstance.data.datasets[0].data = dataVals;
+      // Barra de hoje em Magenta Escuro (#6e135b) de alto contraste e dias anteriores em lilás suave
+      emailChartInstance.data.datasets[0].backgroundColor = dataVals.map((_, i) =>
+        i === dataVals.length - 1 ? '#6e135b' : '#bda6bd'
+      );
+      emailChartInstance.update();
+    }
+  </script>
+
+</body>
+</html>

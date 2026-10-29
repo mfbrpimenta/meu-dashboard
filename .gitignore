@@ -1,0 +1,15 @@
+# Variáveis de ambiente e segredos locais
+.env
+.env.local
+.env.*.local
+config.js
+
+# Sistema operacional e logs
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+*.log
+node_modules/
+
